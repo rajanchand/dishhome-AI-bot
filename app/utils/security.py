@@ -83,10 +83,17 @@ def hash_refresh_token(raw: str) -> str:
 
 def verify_token(token: str, expected_type: str = "access") -> dict:
     """Decode a JWT. Raises JWTError on failure."""
-    payload = jwt.decode(token, settings.jwt_secret_key, algorithms=[settings.jwt_algorithm])
-    if payload.get("type") != expected_type:
-        raise JWTError(f"Token type mismatch: expected {expected_type}")
-    return payload
+    try:
+        # Try local secret first
+        payload = jwt.decode(token, settings.jwt_secret_key, algorithms=[settings.jwt_algorithm])
+        if payload.get("type") != expected_type:
+            raise JWTError(f"Token type mismatch: expected {expected_type}")
+        return payload
+    except JWTError:
+        # Fallback to Supabase secret if available
+        if settings.supabase_jwt_secret:
+            return jwt.decode(token, settings.supabase_jwt_secret, algorithms=["HS256"])
+        raise
 
 
 # ── TOTP MFA ──────────────────────────────────────────────────────────────────

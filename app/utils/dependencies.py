@@ -5,7 +5,6 @@ from uuid import UUID
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
-from jose import JWTError
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -13,6 +12,7 @@ from sqlalchemy.orm import selectinload
 from app.models import User, Role, get_db
 from app.utils.security import verify_token
 from app.services.auth_service import auth_service
+from config.settings import settings
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login", auto_error=False)
 
@@ -28,16 +28,25 @@ async def get_current_user(
             headers={"WWW-Authenticate": "Bearer"},
         )
     try:
+        # verify_token handles both local and Supabase secrets
         payload = verify_token(token, expected_type="access")
-    except JWTError as e:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=f"Invalid token: {e}",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+    except Exception as e:
+        # If verify_token failed, it might be a Supabase token which doesn't have "type: access"
+        try:
+            from jose import jwt
+            payload = jwt.decode(token, settings.supabase_jwt_secret, algorithms=["HS256"], options={"verify_aud": False})
+        except Exception:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail=f"Invalid token: {e}",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+
     user_id = payload.get("sub")
     if not user_id:
-        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Token missing user")
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Token missing user identifier (sub)")
+    
+    # In Supabase integration, we map the JWT 'sub' to our User.id
     stmt = (
         select(User)
         .options(selectinload(User.role).selectinload(Role.permissions))
@@ -45,10 +54,13 @@ async def get_current_user(
     )
     result = await db.execute(stmt)
     user = result.scalar_one_or_none()
-    if user is None or not user.is_active:
-        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "User not found or inactive")
-    if user.is_locked:
-        raise HTTPException(status.HTTP_403_FORBIDDEN, "Account is locked")
+    
+    if user is None:
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "User not found in application database")
+        
+    if not user.is_active:
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "User account is inactive")
+        
     return user
 
 

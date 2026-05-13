@@ -1,6 +1,7 @@
 """Alembic migration environment — async engine, autogenerate metadata."""
 
 import asyncio
+import os
 from logging.config import fileConfig
 
 from sqlalchemy import pool
@@ -15,7 +16,9 @@ import app.models  # noqa: F401
 
 config = context.config
 
-config.set_main_option("sqlalchemy.url", settings.database_url)
+# Use DIRECT_URL for migrations if available to bypass pooler (recommended for Supabase)
+db_url = os.getenv("DIRECT_URL") or settings.database_url
+config.set_main_option("sqlalchemy.url", db_url)
 
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)

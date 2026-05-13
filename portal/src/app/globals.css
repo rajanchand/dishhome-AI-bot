@@ -3,13 +3,27 @@
 @tailwind utilities;
 
 :root {
-  --color-primary: #0066cc;
+  --color-primary: #f04e23; /* DishHome Orange */
+  --color-secondary: #2c3e50;
+  --bg-gradient: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+}
+
+body {
+  @apply bg-slate-50 text-slate-900 antialiased;
 }
 
 .btn-primary {
-  @apply bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition;
+  @apply bg-[#f04e23] text-white px-5 py-2.5 rounded-lg font-medium shadow-lg shadow-orange-200 hover:bg-[#d6411b] transition-all active:scale-95;
 }
 
 .card {
-  @apply bg-white rounded-lg shadow p-6;
+  @apply bg-white/80 backdrop-blur-md border border-white/20 rounded-2xl shadow-xl shadow-slate-200/50 p-6 transition-all hover:shadow-2xl hover:shadow-slate-300/50;
+}
+
+.glass {
+  @apply bg-white/70 backdrop-blur-lg border border-white/30 rounded-3xl;
+}
+
+.text-gradient {
+  @apply bg-clip-text text-transparent bg-gradient-to-r from-orange-600 to-red-600;
 }

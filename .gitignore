@@ -7,6 +7,15 @@ __pycache__/
 
 # Environment
 .env
+.env.*
+*.env
+
+# Node / Frontend
+node_modules/
+dist/
+.next/
+out/
+build/
 
 # Database
 *.db

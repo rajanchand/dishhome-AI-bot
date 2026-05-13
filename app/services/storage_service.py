@@ -1,83 +1,73 @@
-"""MinIO/S3-compatible object storage service."""
+"""Supabase-powered object storage service."""
 
 from typing import Optional
-from datetime import timedelta
-import io
-
-import boto3
-from botocore.exceptions import ClientError
 from loguru import logger
+from supabase import create_client, Client
 
 from config.settings import settings
 
 
 class StorageService:
     def __init__(self) -> None:
-        self._client = None
+        self._client: Optional[Client] = None
 
     @property
-    def client(self):
+    def client(self) -> Client:
         if self._client is None:
-            self._client = boto3.client(
-                "s3",
-                endpoint_url=settings.s3_endpoint_url,
-                aws_access_key_id=settings.s3_access_key,
-                aws_secret_access_key=settings.s3_secret_key,
-                region_name=settings.s3_region,
+            self._client = create_client(
+                settings.supabase_url,
+                settings.supabase_service_role_key or settings.supabase_key
             )
         return self._client
 
     def ensure_buckets(self) -> None:
+        """Supabase buckets are typically managed via the dashboard, 
+        but we can try to ensure they exist via API if using Service Role Key."""
         for bucket in (settings.s3_bucket_recordings, settings.s3_bucket_attachments):
             try:
-                self.client.head_bucket(Bucket=bucket)
-            except ClientError:
+                # Try to get bucket info
+                self.client.storage.get_bucket(bucket)
+            except Exception:
                 try:
-                    self.client.create_bucket(Bucket=bucket)
-                    logger.success(f"S3 bucket created: {bucket}")
+                    # Create if not exists (requires Service Role Key)
+                    self.client.storage.create_bucket(bucket, options={"public": False})
+                    logger.success(f"Supabase storage bucket created: {bucket}")
                 except Exception as e:
-                    logger.warning(f"Failed to create bucket {bucket}: {e}")
+                    logger.warning(f"Failed to ensure bucket {bucket}: {e}")
 
     def upload_recording(self, session_id: str, audio_bytes: bytes,
                           content_type: str = "audio/mpeg") -> Optional[str]:
-        key = f"calls/{session_id}.mp3"
+        path = f"calls/{session_id}.mp3"
         try:
-            self.client.put_object(
-                Bucket=settings.s3_bucket_recordings,
-                Key=key,
-                Body=audio_bytes,
-                ContentType=content_type,
-                ACL="private",
+            self.client.storage.from_(settings.s3_bucket_recordings).upload(
+                path=path,
+                file=audio_bytes,
+                file_options={"content-type": content_type, "x-upsert": "true"}
             )
-            return key
+            return path
         except Exception as e:
             logger.warning(f"Recording upload failed: {e}")
             return None
 
     def upload_attachment(self, ticket_id: str, filename: str,
                            file_bytes: bytes, content_type: str) -> Optional[str]:
-        key = f"tickets/{ticket_id}/{filename}"
+        path = f"tickets/{ticket_id}/{filename}"
         try:
-            self.client.put_object(
-                Bucket=settings.s3_bucket_attachments,
-                Key=key,
-                Body=file_bytes,
-                ContentType=content_type,
-                ACL="private",
+            self.client.storage.from_(settings.s3_bucket_attachments).upload(
+                path=path,
+                file=file_bytes,
+                file_options={"content-type": content_type, "x-upsert": "true"}
             )
-            return key
+            return path
         except Exception as e:
             logger.warning(f"Attachment upload failed: {e}")
             return None
 
     def get_presigned_url(self, bucket: str, key: str,
-                           expires_in: Optional[int] = None) -> Optional[str]:
+                           expires_in: int = 3600) -> Optional[str]:
         try:
-            return self.client.generate_presigned_url(
-                "get_object",
-                Params={"Bucket": bucket, "Key": key},
-                ExpiresIn=expires_in or settings.s3_presigned_expiry,
-            )
+            res = self.client.storage.from_(bucket).create_signed_url(key, expires_in)
+            return res.get("signedURL")
         except Exception as e:
             logger.warning(f"Presign URL failed: {e}")
             return None

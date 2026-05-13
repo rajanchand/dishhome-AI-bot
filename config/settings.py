@@ -30,6 +30,7 @@ class Settings(BaseSettings):
     database_url: str = Field(
         default="postgresql+asyncpg://dishhome:dishhome_secret@localhost:5432/dishhome_db"
     )
+    direct_url: Optional[str] = Field(default=None)
     database_pool_size: int = Field(default=20)
     database_max_overflow: int = Field(default=40)
     database_pool_recycle: int = Field(default=300)
@@ -111,6 +112,12 @@ class Settings(BaseSettings):
     otel_exporter_otlp_endpoint: str = Field(default="http://localhost:4317")
     enable_prometheus: bool = Field(default=True)
 
+    # ── Supabase ───────────────────────────────────────────────────────────
+    supabase_url: str = Field(default="")
+    supabase_key: str = Field(default="")
+    supabase_service_role_key: str = Field(default="")
+    supabase_jwt_secret: str = Field(default="")
+
     # ── Logging ────────────────────────────────────────────────────────────
     log_level: str = Field(default="INFO")
     log_file: str = Field(default="logs/voicebot.log")
@@ -141,6 +148,7 @@ class Settings(BaseSettings):
         "env_file": ".env",
         "env_file_encoding": "utf-8",
         "case_sensitive": False,
+        "extra": "ignore",
     }
 
 
