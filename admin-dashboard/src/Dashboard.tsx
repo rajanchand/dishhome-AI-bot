@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   Users, Phone, Ticket, Wifi, AlertTriangle, 
   TrendingUp, Clock, Shield, Globe, Cpu,
-  BarChart3, Activity, Zap, Search, Bell
+  BarChart3, Activity, Zap, Search, Bell, LayoutDashboard
 } from 'lucide-react';
 import { 
   LineChart, Line, AreaChart, Area, 
