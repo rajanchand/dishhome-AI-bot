@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dishhome-celery-worker
+  namespace: dishhome
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: dishhome-celery-worker
+  template:
+    metadata:
+      labels:
+        app: dishhome-celery-worker
+    spec:
+      containers:
+        - name: worker
+          image: dishhome/call-center-worker:latest
+          command: ["celery", "-A", "app.workers.celery_app", "worker", "--loglevel=info", "--concurrency=4"]
+          envFrom:
+            - configMapRef:
+                name: dishhome-config
+            - secretRef:
+                name: dishhome-secrets
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "512Mi"
+            limits:
+              cpu: "1000m"
+              memory: "2Gi"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dishhome-celery-beat
+  namespace: dishhome
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: dishhome-celery-beat
+  template:
+    metadata:
+      labels:
+        app: dishhome-celery-beat
+    spec:
+      containers:
+        - name: beat
+          image: dishhome/call-center-worker:latest
+          command: ["celery", "-A", "app.workers.celery_app", "beat", "--loglevel=info"]
+          envFrom:
+            - configMapRef:
+                name: dishhome-config
+            - secretRef:
+                name: dishhome-secrets
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "256Mi"

@@ -634,28 +634,61 @@ class LLMEngine:
             return self._mock_response(user_message, language)
 
         try:
-            # Build messages array
+            from app.core.tool_schemas import TOOL_SCHEMAS
+            from app.core.function_caller import function_caller
+
             messages = self._build_messages(
                 user_message, conversation_history, language, customer_context
             )
 
-            # Call Ollama
+            options = {"temperature": 0.7, "top_p": 0.9, "num_predict": 256}
+
+            # Tool-calling loop (max 5 iterations to prevent runaway chains)
+            max_iters = 5
+            for _ in range(max_iters):
+                try:
+                    response = await self._client.chat(
+                        model=self._model,
+                        messages=messages,
+                        tools=TOOL_SCHEMAS,
+                        options=options,
+                    )
+                except TypeError:
+                    # Older Ollama clients don't accept `tools` kwarg
+                    response = await self._client.chat(
+                        model=self._model, messages=messages, options=options,
+                    )
+
+                msg = response.get("message", {}) if isinstance(response, dict) else getattr(response, "message", {})
+                tool_calls = (msg.get("tool_calls") if isinstance(msg, dict) else getattr(msg, "tool_calls", None)) or []
+                if not tool_calls:
+                    content = (msg.get("content") if isinstance(msg, dict) else getattr(msg, "content", "")) or ""
+                    return content.strip() or self._error_response(language)
+
+                messages.append({"role": "assistant", "content": "", "tool_calls": tool_calls})
+                for tc in tool_calls:
+                    fn = tc.get("function", {}) if isinstance(tc, dict) else getattr(tc, "function", {})
+                    name = fn.get("name") if isinstance(fn, dict) else getattr(fn, "name", "")
+                    args = fn.get("arguments", {}) if isinstance(fn, dict) else getattr(fn, "arguments", {})
+                    if isinstance(args, str):
+                        try:
+                            args = json.loads(args)
+                        except Exception:
+                            args = {}
+                    logger.info(f"Tool call: {name}({list(args.keys())})")
+                    tool_result = await function_caller.call(name, args)
+                    messages.append({
+                        "role": "tool", "name": name,
+                        "content": json.dumps(tool_result, default=str),
+                    })
+
+            # If we exhausted the loop, ask LLM for a final text answer
             response = await self._client.chat(
-                model=self._model,
-                messages=messages,
-                options={
-                    "temperature": 0.7,
-                    "top_p": 0.9,
-                    "num_predict": 256,  # Keep responses concise for voice
-                },
+                model=self._model, messages=messages, options=options,
             )
-
-            assistant_message = response["message"]["content"].strip()
-            logger.info(
-                f"LLM Response ({language}): '{assistant_message[:80]}...'"
-            )
-
-            return assistant_message
+            msg = response.get("message", {}) if isinstance(response, dict) else getattr(response, "message", {})
+            content = (msg.get("content") if isinstance(msg, dict) else getattr(msg, "content", "")) or ""
+            return content.strip() or self._error_response(language)
 
         except Exception as e:
             logger.error(f"LLM generation error: {e}")

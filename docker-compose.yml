@@ -1,30 +1,89 @@
 version: '3.8'
 
 services:
-  # DishHome Voice Bot API
+  # ── DishHome Voice Bot API ──────────────────────────────────────────────────
   voicebot:
     build: .
     container_name: dishhome-voicebot
     ports:
       - "8000:8000"
+    env_file:
+      - .env
     environment:
       - OLLAMA_BASE_URL=http://ollama:11434
-      - OLLAMA_MODEL=llama3.1:8b
-      - WHISPER_MODEL_SIZE=base
-      - WHISPER_DEVICE=cpu
-      - APP_ENV=production
-      - APP_DEBUG=false
-      - DATABASE_URL=sqlite+aiosqlite:///./data/dishhome_voicebot.db
+      - DATABASE_URL=postgresql+asyncpg://dishhome:dishhome_secret@postgres:5432/dishhome_db
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/1
+      - CELERY_RESULT_BACKEND=redis://redis:6379/2
+      - ELASTICSEARCH_URL=http://elasticsearch:9200
+      - S3_ENDPOINT_URL=http://minio:9000
     volumes:
       - ./data:/app/data
       - ./logs:/app/logs
     depends_on:
-      - ollama
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
+      minio:
+        condition: service_started
+      ollama:
+        condition: service_started
     restart: unless-stopped
     networks:
       - dishhome-network
 
-  # Ollama LLM Server
+  # ── Celery Worker ──────────────────────────────────────────────────────────
+  celery-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.worker
+    container_name: dishhome-celery-worker
+    command: celery -A app.workers.celery_app worker --loglevel=info --concurrency=4
+    env_file:
+      - .env
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://dishhome:dishhome_secret@postgres:5432/dishhome_db
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/1
+      - CELERY_RESULT_BACKEND=redis://redis:6379/2
+      - ELASTICSEARCH_URL=http://elasticsearch:9200
+      - S3_ENDPOINT_URL=http://minio:9000
+    volumes:
+      - ./logs:/app/logs
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - dishhome-network
+
+  # ── Celery Beat Scheduler ─────────────────────────────────────────────────
+  celery-beat:
+    build:
+      context: .
+      dockerfile: Dockerfile.worker
+    container_name: dishhome-celery-beat
+    command: celery -A app.workers.celery_app beat --loglevel=info --scheduler django_celery_beat.schedulers:DatabaseScheduler
+    env_file:
+      - .env
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://dishhome:dishhome_secret@postgres:5432/dishhome_db
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/1
+      - CELERY_RESULT_BACKEND=redis://redis:6379/2
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - dishhome-network
+
+  # ── Ollama LLM Server ─────────────────────────────────────────────────────
   ollama:
     image: ollama/ollama:latest
     container_name: dishhome-ollama
@@ -44,8 +103,158 @@ services:
     #           count: 1
     #           capabilities: [gpu]
 
+  # ── PostgreSQL 16 (Primary Database) ─────────────────────────────────────
+  postgres:
+    image: timescale/timescaledb:latest-pg16
+    container_name: dishhome-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: dishhome
+      POSTGRES_PASSWORD: dishhome_secret
+      POSTGRES_DB: dishhome_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init_db.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dishhome -d dishhome_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - dishhome-network
+
+  # ── Redis 7 (Cache + PubSub + Sessions) ──────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: dishhome-redis
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes --maxmemory 512mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - dishhome-network
+
+  # ── Elasticsearch 8 (Full-Text Search) ───────────────────────────────────
+  elasticsearch:
+    image: elasticsearch:8.11.0
+    container_name: dishhome-elasticsearch
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - xpack.security.http.ssl.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx1g"
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - dishhome-network
+
+  # ── MinIO (S3-Compatible Object Storage) ──────────────────────────────────
+  minio:
+    image: minio/minio:latest
+    container_name: dishhome-minio
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin123
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio_data:/data
+    restart: unless-stopped
+    networks:
+      - dishhome-network
+
+  # ── Prometheus (Metrics) ──────────────────────────────────────────────────
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: dishhome-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.enable-lifecycle'
+    restart: unless-stopped
+    networks:
+      - dishhome-network
+
+  # ── Grafana (Dashboards) ──────────────────────────────────────────────────
+  grafana:
+    image: grafana/grafana:latest
+    container_name: dishhome-grafana
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin123
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+    networks:
+      - dishhome-network
+
+  # ── Dev Tools (only in dev) ───────────────────────────────────────────────
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: dishhome-redis-commander
+    ports:
+      - "8081:8081"
+    environment:
+      - REDIS_HOSTS=local:redis:6379
+    depends_on:
+      - redis
+    profiles:
+      - dev
+    networks:
+      - dishhome-network
+
+  kibana:
+    image: kibana:8.11.0
+    container_name: dishhome-kibana
+    ports:
+      - "5601:5601"
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    depends_on:
+      - elasticsearch
+    profiles:
+      - dev
+    networks:
+      - dishhome-network
+
 volumes:
   ollama_data:
+  postgres_data:
+  redis_data:
+  elasticsearch_data:
+  minio_data:
+  prometheus_data:
+  grafana_data:
 
 networks:
   dishhome-network:

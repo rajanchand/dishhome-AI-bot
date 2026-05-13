@@ -1,0 +1,89 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dishhome-api
+  namespace: dishhome
+  labels:
+    app: dishhome-api
+    component: backend
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: dishhome-api
+  template:
+    metadata:
+      labels:
+        app: dishhome-api
+        component: backend
+    spec:
+      containers:
+        - name: api
+          image: dishhome/call-center:latest
+          ports:
+            - containerPort: 8000
+              name: http
+          envFrom:
+            - configMapRef:
+                name: dishhome-config
+            - secretRef:
+                name: dishhome-secrets
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: 8000
+            initialDelaySeconds: 30
+            periodSeconds: 30
+          resources:
+            requests:
+              cpu: "500m"
+              memory: "1Gi"
+            limits:
+              cpu: "2000m"
+              memory: "4Gi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dishhome-api
+  namespace: dishhome
+spec:
+  selector:
+    app: dishhome-api
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8000
+  type: ClusterIP
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: dishhome-api-hpa
+  namespace: dishhome
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: dishhome-api
+  minReplicas: 3
+  maxReplicas: 20
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80

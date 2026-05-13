@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: dishhome
+  labels:
+    app: dishhome-call-center
+    environment: production

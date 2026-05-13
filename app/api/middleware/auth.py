@@ -1,30 +1,24 @@
 """
-DishHome AI Voice Bot - Auth Middleware
-Basic authentication for agent dashboard.
+JWT + RBAC auth — replaces legacy HTTP Basic auth.
+Re-exports the get_current_user / require_permission dependencies.
 """
 
-import secrets
-from fastapi import Request, HTTPException, Depends
-from fastapi.security import HTTPBasic, HTTPBasicCredentials
-from config.settings import settings
+from app.utils.dependencies import (
+    get_current_user,
+    get_current_user_optional,
+    require_permission,
+    require_role,
+    oauth2_scheme,
+)
 
-security = HTTPBasic()
+# Legacy alias kept for backward-compatibility with existing routes
+verify_agent = get_current_user
 
-
-async def verify_agent(credentials: HTTPBasicCredentials = Depends(security)):
-    """Verify agent credentials for dashboard access."""
-    correct_username = secrets.compare_digest(
-        credentials.username.encode("utf8"),
-        settings.agent_username.encode("utf8"),
-    )
-    correct_password = secrets.compare_digest(
-        credentials.password.encode("utf8"),
-        settings.agent_password.encode("utf8"),
-    )
-    if not (correct_username and correct_password):
-        raise HTTPException(
-            status_code=401,
-            detail="Invalid credentials",
-            headers={"WWW-Authenticate": "Basic"},
-        )
-    return credentials.username
+__all__ = [
+    "get_current_user",
+    "get_current_user_optional",
+    "require_permission",
+    "require_role",
+    "oauth2_scheme",
+    "verify_agent",
+]

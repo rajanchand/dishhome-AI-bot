@@ -19,16 +19,29 @@ class CallService:
     async def create_call(self, session_id: str, language: str = "en",
                           customer_phone: Optional[str] = None) -> CallRecord:
         async with async_session() as db:
+            customer_id = None
+            customer_name = None
+            if customer_phone:
+                try:
+                    from app.services.customer_service import customer_service
+                    customer = await customer_service.get_customer_by_phone(db, customer_phone)
+                    if customer is not None:
+                        customer_id = customer.id
+                        customer_name = customer.full_name
+                except Exception as e:
+                    logger.debug(f"Customer link failed for {customer_phone}: {e}")
             record = CallRecord(
                 session_id=session_id,
                 language=language,
                 customer_phone=customer_phone,
+                customer_id=customer_id,
+                customer_name=customer_name,
                 status="active",
             )
             db.add(record)
             await db.commit()
             await db.refresh(record)
-            logger.info(f"Created call record: {session_id}")
+            logger.info(f"Created call record: {session_id} (customer={customer_id})")
             return record
 
     async def end_call(self, session_id: str, transcript: list,

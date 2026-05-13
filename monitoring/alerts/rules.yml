@@ -1,0 +1,46 @@
+groups:
+  - name: dishhome_application
+    rules:
+      - alert: HighErrorRate
+        expr: |
+          sum(rate(http_requests_total{status=~"5.."}[5m]))
+            / sum(rate(http_requests_total[5m])) > 0.05
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "5xx error rate > 5%"
+
+      - alert: SLAComplianceLow
+        expr: sla_compliance_rate < 90
+        for: 10m
+        labels:
+          severity: high
+        annotations:
+          summary: "Ticket SLA compliance dropped below 90%"
+
+      - alert: NetworkHealthCritical
+        expr: network_health_percent < 70
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Network health < 70% — possible widespread outage"
+
+  - name: dishhome_infrastructure
+    rules:
+      - alert: PostgresDown
+        expr: up{job="postgres"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "PostgreSQL is down"
+
+      - alert: RedisDown
+        expr: up{job="redis"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Redis is down"
