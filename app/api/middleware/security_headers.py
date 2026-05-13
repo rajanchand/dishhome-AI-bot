@@ -12,11 +12,16 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         "Strict-Transport-Security": "max-age=63072000; includeSubDomains",
         "Referrer-Policy": "strict-origin-when-cross-origin",
         "Permissions-Policy": "geolocation=(), microphone=(self), camera=()",
-        "Content-Security-Policy": "default-src 'self'; img-src 'self' data: https:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src 'self' ws: wss:; frame-ancestors 'none'",
     }
 
     async def dispatch(self, request: Request, call_next):
         response = await call_next(request)
-        for k, v in self.HEADERS.items():
+        # Relax CSP in development to allow cross-origin API/WS calls
+        from config.settings import settings
+        headers = self.HEADERS.copy()
+        if settings.app_env == "development":
+            headers["Content-Security-Policy"] = "default-src 'self' *; img-src * data:; style-src 'self' 'unsafe-inline' *; script-src 'self' 'unsafe-inline' *; connect-src * ws: wss:; frame-ancestors 'none'"
+        
+        for k, v in headers.items():
             response.headers[k] = v
         return response

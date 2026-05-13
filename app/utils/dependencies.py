@@ -22,6 +22,14 @@ async def get_current_user(
     db: AsyncSession = Depends(get_db),
 ) -> User:
     if not token:
+        if settings.app_env == "development":
+            # Return a mock SuperAdmin user for local development if no token provided
+            stmt = select(User).options(selectinload(User.role).selectinload(Role.permissions)).limit(1)
+            result = await db.execute(stmt)
+            mock_user = result.scalar_one_or_none()
+            if mock_user:
+                return mock_user
+        
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Authentication required",

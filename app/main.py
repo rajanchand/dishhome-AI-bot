@@ -119,11 +119,15 @@ app = FastAPI(
 
 
 # ── Middleware (order matters — outermost first) ─────────────────────────────
-app.add_middleware(SecurityHeadersMiddleware)
+if settings.app_env != "development":
+    app.add_middleware(SecurityHeadersMiddleware)
+
 app.add_middleware(AuditMiddleware)
+
+# CORSMiddleware should be the outermost for the response (last added)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.cors_allowed_origins,
+    allow_origins=["*"] if settings.app_env == "development" else settings.cors_allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

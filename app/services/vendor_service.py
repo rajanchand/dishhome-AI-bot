@@ -95,6 +95,15 @@ class VendorService:
         )
         return list(result.scalars())
 
+    async def get_vendor_by_area(self, db: AsyncSession, service_area_id: UUID) -> Optional[Vendor]:
+        """Finds the best active vendor for a given service area."""
+        stmt = select(Vendor).where(
+            Vendor.is_active == True,
+            Vendor.service_areas.contains([str(service_area_id)])
+        ).order_by(Vendor.rating.desc())
+        result = await db.execute(stmt)
+        return result.scalars().first()
+
     # ── RMA ────────────────────────────────────────────────────────────
     async def _next_rma_number(self, db: AsyncSession) -> str:
         year = datetime.utcnow().year

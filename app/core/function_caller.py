@@ -18,7 +18,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models import (
-    AsyncSessionLocal, Customer, NetworkDevice, Ticket, Package, ServiceArea,
+    AsyncSessionLocal, Customer, NetworkDevice, Ticket, Package, ServiceArea, CustomerPackage,
 )
 from app.services.cache_service import cache_service
 from app.services.customer_service import customer_service
@@ -29,6 +29,7 @@ from app.services.package_service import package_service
 from app.services.search_service import search_service
 from app.services.notification_service import notification_service
 from app.services.knowledge_base import KnowledgeBase
+from app.services.vendor_service import vendor_service
 
 
 def _gen_otp() -> str:
@@ -340,9 +341,9 @@ class FunctionCaller:
         if not await cache_service.get(f"otp:verified:{customer_id}:package_change"):
             return {"upgraded": False, "requires_otp": True}
         active_sub = (await db.execute(
-            select(__import__("app.models", fromlist=["CustomerPackage"]).CustomerPackage).where(
-                __import__("app.models", fromlist=["CustomerPackage"]).CustomerPackage.customer_id == UUID(customer_id),
-                __import__("app.models", fromlist=["CustomerPackage"]).CustomerPackage.status == "active",
+            select(CustomerPackage).where(
+                CustomerPackage.customer_id == UUID(customer_id),
+                CustomerPackage.status == "active",
             )
         )).scalar_one_or_none()
         if active_sub is None:
@@ -376,14 +377,30 @@ class FunctionCaller:
     async def _create_support_ticket(self, db: AsyncSession, customer_id: str, category: str,
                                        priority: str, title: str, description: str,
                                        field_visit_required: bool = False) -> dict:
+        """Creates a ticket and auto-assigns vendor if needed."""
+        # 1. Fetch customer to get service area
+        customer = await customer_service.get_customer(db, UUID(customer_id))
+        vendor_id = None
+        if customer and field_visit_required:
+            # 2. Get service area from primary address
+            primary_addr = next((a for a in customer.addresses if a.is_primary), None)
+            if primary_addr and primary_addr.service_area_id:
+                # 3. Find best vendor for this area
+                vendor = await vendor_service.get_vendor_by_area(db, primary_addr.service_area_id)
+                if vendor:
+                    vendor_id = vendor.id
+                    logger.info(f"Auto-assigned vendor {vendor.company_name} to ticket for area {primary_addr.service_area_id}")
+
         ticket = await ticket_service.create_ticket(db, {
             "customer_id": UUID(customer_id), "category": category, "priority": priority,
             "title": title, "description": description,
             "field_visit_required": field_visit_required,
+            "assigned_vendor_id": vendor_id,
         }, created_by_ai=True)
         return {
             "ticket_id": str(ticket.id), "ticket_number": ticket.ticket_number,
             "sla_deadline": ticket.sla_deadline.isoformat(),
+            "assigned_vendor": vendor_id and str(vendor_id),
         }
 
     async def _get_existing_tickets(self, db: AsyncSession, customer_id: str,

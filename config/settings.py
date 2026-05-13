@@ -23,7 +23,7 @@ class Settings(BaseSettings):
 
     # ── CORS ────────────────────────────────────────────────────────────────
     cors_allowed_origins: List[str] = Field(
-        default=["http://localhost:3000", "http://localhost:8000", "http://localhost:8001"]
+        default=["http://localhost:3000", "http://localhost:8000", "http://localhost:8001", "http://localhost:5173"]
     )
 
     # ── PostgreSQL (Primary Database) ─────────────────────────────────────

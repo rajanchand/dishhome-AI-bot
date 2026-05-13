@@ -40,6 +40,7 @@ class TicketService:
             description=data["description"],
             sla_deadline=Ticket.compute_sla_deadline(data.get("priority", "medium")),
             field_visit_required=data.get("field_visit_required", False),
+            assigned_vendor_id=data.get("assigned_vendor_id"),
             network_device_id=data.get("network_device_id"),
             created_by_user_id=created_by,
             created_by_ai=created_by_ai,
