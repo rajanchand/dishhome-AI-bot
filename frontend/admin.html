@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enterprise Admin | NexaISP</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <style>
+        :root {
+            --sidebar-width: 280px;
+            --accent-gradient: linear-gradient(135deg, var(--primary-color), #8e44ad);
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: #0a0b10;
+            color: #ffffff;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        .admin-layout {
+            display: grid;
+            grid-template-columns: var(--sidebar-width) 1fr;
+            height: 100vh;
+        }
+
+        /* Sidebar Styling */
+        .sidebar {
+            background: rgba(15, 17, 26, 0.8);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 30px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .sidebar-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 40px;
+            padding: 0 10px;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .nav-group-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            color: rgba(255, 255, 255, 0.3);
+            letter-spacing: 1px;
+            margin: 20px 10px 10px;
+            font-weight: 700;
+        }
+
+        .nav-item {
+            padding: 12px 16px;
+            border-radius: 12px;
+            color: rgba(255, 255, 255, 0.6);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            font-weight: 500;
+            border: 1px solid transparent;
+        }
+
+        .nav-item:hover {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .nav-item.active {
+            background: rgba(var(--primary-glow), 0.1);
+            color: var(--primary-color);
+            border-color: rgba(var(--primary-glow), 0.2);
+        }
+
+        /* Main Content */
+        .admin-main {
+            padding: 40px;
+            overflow-y: auto;
+            background: radial-gradient(circle at top right, rgba(var(--primary-glow), 0.05), transparent);
+        }
+
+        .page-header {
+            margin-bottom: 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .page-title h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 700;
+        }
+
+        .page-title p {
+            margin: 5px 0 0;
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 14px;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 24px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 24px;
+            border-radius: 20px;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(var(--primary-glow), 0.2);
+        }
+
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            margin-bottom: 16px;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .stat-trend {
+            position: absolute;
+            top: 24px;
+            right: 24px;
+            font-size: 12px;
+            padding: 4px 8px;
+            border-radius: 20px;
+        }
+
+        .trend-up { background: rgba(76, 209, 55, 0.1); color: #4cd137; }
+
+        /* Tables & Sections */
+        .section-view {
+            display: none;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .section-view.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .data-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 24px;
+            overflow: hidden;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .data-table th {
+            padding: 16px 24px;
+            text-align: left;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.01);
+            font-weight: 700;
+        }
+
+        .data-table td {
+            padding: 16px 24px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+            font-size: 14px;
+        }
+
+        .data-table tr:hover td {
+            background: rgba(255, 255, 255, 0.01);
+        }
+
+        .badge {
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-online { background: rgba(76, 209, 55, 0.1); color: #4cd137; }
+        .status-offline { background: rgba(255, 71, 87, 0.1); color: #ff4757; }
+        .status-pending { background: rgba(251, 197, 49, 0.1); color: #fbc531; }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.2); }
+    </style>
+</head>
+<body>
+    <div class="background-effects">
+        <div class="glow-orb orb-1"></div>
+        <div class="glow-orb orb-2"></div>
+    </div>
+
+    <div class="admin-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <i class="fas fa-shield-halved"></i> NexaISP Admin
+            </div>
+            
+            <div class="nav-group-label">Core Operations</div>
+            <div class="nav-item active" onclick="switchTab('dashboard')">
+                <i class="fas fa-chart-pie"></i> Overview
+            </div>
+            <div class="nav-item" onclick="switchTab('tickets')">
+                <i class="fas fa-ticket-alt"></i> Tickets Manager
+            </div>
+            <div class="nav-item" onclick="switchTab('vendors')">
+                <i class="fas fa-network-wired"></i> Areas & Vendors
+            </div>
+
+            <div class="nav-group-label">Intelligence</div>
+            <div class="nav-item" onclick="switchTab('faqs')">
+                <i class="fas fa-brain"></i> Knowledge Base
+            </div>
+            <div class="nav-item" onclick="switchTab('settings')">
+                <i class="fas fa-sliders-h"></i> AI Parameters
+            </div>
+
+            <div class="nav-group-label">Access Control</div>
+            <div class="nav-item" onclick="switchTab('users')">
+                <i class="fas fa-user-shield"></i> System Users
+            </div>
+
+            <div style="margin-top: auto; padding: 20px 10px;">
+                <a href="/dashboard" class="nav-item" style="color: var(--primary-color)">
+                    <i class="fas fa-arrow-left"></i> Agent Dashboard
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="admin-main">
+            
+            <!-- Dashboard Overview -->
+            <section id="dashboard-section" class="section-view active">
+                <div class="page-header">
+                    <div class="page-title">
+                        <h1>Operations Overview</h1>
+                        <p>Real-time network and agent performance metrics.</p>
+                    </div>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon" style="color: #4cd137"><i class="fas fa-phone-alt"></i></div>
+                        <div class="stat-value" id="stat-active-calls">0</div>
+                        <div class="stat-label">Live Active Calls</div>
+                        <div class="stat-trend trend-up">+12%</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon" style="color: #00a8ff"><i class="fas fa-user-tie"></i></div>
+                        <div class="stat-value" id="stat-online-agents">0</div>
+                        <div class="stat-label">Online Support Agents</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon" style="color: #fbc531"><i class="fas fa-exclamation-triangle"></i></div>
+                        <div class="stat-value" id="stat-open-tickets">0</div>
+                        <div class="stat-label">Unresolved Tickets</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon" style="color: #9c88ff"><i class="fas fa-clock"></i></div>
+                        <div class="stat-value" id="stat-avg-wait">0s</div>
+                        <div class="stat-label">Avg. Response Time</div>
+                    </div>
+                </div>
+
+                <div class="data-card">
+                    <div style="padding: 24px; border-bottom: 1px solid rgba(255, 255, 255, 0.05); display: flex; justify-content: space-between; align-items: center;">
+                        <h3 style="margin:0">Live Support Queue</h3>
+                        <span class="badge status-online">Running Normally</span>
+                    </div>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Customer ID</th>
+                                <th>Agent</th>
+                                <th>Duration</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>#CUST-9841234</td>
+                                <td>Nexa AI (Auto)</td>
+                                <td>02:14</td>
+                                <td><span class="badge status-online">Active</span></td>
+                                <td><button class="btn-icon"><i class="fas fa-eye"></i></button></td>
+                            </tr>
+                            <tr>
+                                <td>#CUST-9800122</td>
+                                <td>Ram Sharma</td>
+                                <td>01:05</td>
+                                <td><span class="badge status-online">Active</span></td>
+                                <td><button class="btn-icon"><i class="fas fa-eye"></i></button></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Tickets Manager -->
+            <section id="tickets-section" class="section-view">
+                <div class="page-header">
+                    <div class="page-title">
+                        <h1>Support Ticket Hub</h1>
+                        <p>Manage and track all technical support requests.</p>
+                    </div>
+                </div>
+                <div class="data-card">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Ticket ID</th>
+                                <th>Customer</th>
+                                <th>Category</th>
+                                <th>Priority</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tickets-table-body">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Knowledge Base -->
+            <section id="faqs-section" class="section-view">
+                <div class="page-header">
+                    <div class="page-title">
+                        <h1>Knowledge Intelligence</h1>
+                        <p>Configure bot responses and troubleshooting logic.</p>
+                    </div>
+                    <button class="btn-primary" onclick="openFAQModal()">
+                        <i class="fas fa-plus"></i> Add New FAQ
+                    </button>
+                </div>
+                <div class="data-card">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Category</th>
+                                <th>English Query</th>
+                                <th>Nepali Query</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="faq-table-body">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Area & Vendors -->
+            <section id="vendors-section" class="section-view">
+                <div class="page-header">
+                    <div class="page-title">
+                        <h1>Field Operations</h1>
+                        <p>Manage areas, vendors, and technician assignments.</p>
+                    </div>
+                </div>
+                <div class="data-card">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Service Area</th>
+                                <th>Vendor Agency</th>
+                                <th>Lead Technician</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="vendor-table-body">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Users Section -->
+            <section id="users-section" class="section-view">
+                <div class="page-header">
+                    <div class="page-title">
+                        <h1>System Access Control</h1>
+                        <p>Manage administrative and agent access levels.</p>
+                    </div>
+                    <button class="btn-primary" onclick="openUserModal()">
+                        <i class="fas fa-user-plus"></i> Provision User
+                    </button>
+                </div>
+                <div class="data-card">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>User Name</th>
+                                <th>Permission Role</th>
+                                <th>Current Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="user-table-body">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Settings -->
+            <section id="settings-section" class="section-view">
+                <div class="page-header">
+                    <div class="page-title">
+                        <h1>AI Parameters</h1>
+                        <p>Global configuration for NexaISP voice engine.</p>
+                    </div>
+                </div>
+                <div class="data-card" style="padding: 30px;">
+                    <div class="form-group">
+                        <label>AI System Persona Prompt</label>
+                        <textarea class="form-control" rows="12" readonly style="background: rgba(0,0,0,0.3); border-color: rgba(255,255,255,0.05); font-family: monospace; font-size: 13px;">
+You are "NexaISP", an enterprise AI...
+[Edit this in app/core/llm_engine.py]
+                        </textarea>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- Modals -->
+    <div class="modal" id="faq-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-title">Intelligence Entry</h3>
+                <button class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></button>
+            </div>
+            <form id="faq-form">
+                <input type="hidden" id="faq-index" value="-1">
+                <div class="form-group">
+                    <label>Intelligence Category</label>
+                    <input type="text" id="faq-category" class="form-control" placeholder="e.g., billing, technical" required>
+                </div>
+                <div class="form-group">
+                    <label>Pattern Keywords (Comma separated)</label>
+                    <input type="text" id="faq-keywords" class="form-control" placeholder="bill, payment, due" required>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div class="form-group">
+                        <label>English Query Pattern</label>
+                        <input type="text" id="faq-q-en" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Nepali Query Pattern</label>
+                        <input type="text" id="faq-q-ne" class="form-control" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>English Response</label>
+                    <textarea id="faq-a-en" class="form-control" rows="3" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Nepali Response</label>
+                    <textarea id="faq-a-ne" class="form-control" rows="3" required></textarea>
+                </div>
+                <button type="submit" class="btn-primary" style="width: 100%; justify-content: center; padding: 15px;">Deploy Intelligence</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal" id="user-modal">
+        <div class="modal-content" style="width: 400px;">
+            <div class="modal-header">
+                <h3 id="user-modal-title">Provision Access</h3>
+                <button class="modal-close" onclick="closeUserModal()"><i class="fas fa-times"></i></button>
+            </div>
+            <form id="user-form">
+                <input type="hidden" id="user-id" value="-1">
+                <div class="form-group">
+                    <label>Identity / Name</label>
+                    <input type="text" id="user-name" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label>Administrative Role</label>
+                    <select id="user-role" class="form-control" required>
+                        <option value="Super Admin">Global Super Admin</option>
+                        <option value="Manager">Operations Manager</option>
+                        <option value="Agent">Support Agent</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Current Status</label>
+                    <select id="user-status" class="form-control" required>
+                        <option value="Active">Operational</option>
+                        <option value="Offline">Deactivated</option>
+                        <option value="Suspended">Access Revoked</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn-primary" style="width: 100%; justify-content: center; padding: 15px;">Confirm Access</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="/static/js/admin.js"></script>
+</body>
+</html>

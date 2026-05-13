@@ -1,0 +1,76 @@
+{
+  "faqs": [
+    {
+      "category": "billing",
+      "keywords": ["bill", "payment", "pay", "balance", "due", "बिल", "भुक्तानी", "बाँकी"],
+      "question_en": "How can I pay my DishHome bill?",
+      "question_ne": "म DishHome को बिल कसरी तिर्न सक्छु?",
+      "answer_en": "You can pay your DishHome bill through: 1) eSewa, 2) Khalti, 3) ConnectIPS, 4) Bank transfer, 5) DishHome app, or 6) Visit any DishHome authorized dealer.",
+      "answer_ne": "तपाईं DishHome को बिल यी माध्यमबाट तिर्न सक्नुहुन्छ: 1) eSewa, 2) Khalti, 3) ConnectIPS, 4) बैंक ट्रान्सफर, 5) DishHome एप, वा 6) कुनै पनि DishHome अधिकृत डिलरमा।"
+    },
+    {
+      "category": "billing",
+      "keywords": ["due date", "when pay", "deadline", "म्याद", "तिर्ने मिति"],
+      "question_en": "When is my bill due?",
+      "question_ne": "मेरो बिल कहिले तिर्नुपर्छ?",
+      "answer_en": "Your bill is due on the same date each month as your activation date. You can check your due date in the DishHome app or by logging into your account at dishhome.com.np.",
+      "answer_ne": "तपाईंको बिल हरेक महिना तपाईंको सक्रियता मितिमा तिर्नुपर्छ। तपाईं DishHome एपमा वा dishhome.com.np मा आफ्नो खातामा लगइन गरेर आफ्नो म्याद जाँच गर्न सक्नुहुन्छ।"
+    },
+    {
+      "category": "plans",
+      "keywords": ["plan", "package", "speed", "internet", "fiber", "प्लान", "प्याकेज", "स्पीड", "इन्टरनेट"],
+      "question_en": "What internet plans does DishHome offer?",
+      "question_ne": "DishHome ले कुन इन्टरनेट प्लानहरू प्रदान गर्छ?",
+      "answer_en": "DishHome offers FiberNet plans: 25 Mbps (Rs.899), 40 Mbps (Rs.1199), 60 Mbps (Rs.1499), 100 Mbps (Rs.1999), and 150 Mbps (Rs.2999) per month. Combo packages with TV are also available.",
+      "answer_ne": "DishHome ले FiberNet प्लानहरू प्रदान गर्छ: 25 Mbps (रु.899), 40 Mbps (रु.1199), 60 Mbps (रु.1499), 100 Mbps (रु.1999), र 150 Mbps (रु.2999) प्रति महिना। TV सहितको कम्बो प्याकेजहरू पनि उपलब्ध छन्।"
+    },
+    {
+      "category": "technical",
+      "keywords": ["slow", "speed", "not working", "problem", "issue", "disconnect", "ढिलो", "काम नगर्ने", "समस्या"],
+      "question_en": "My internet is slow. What should I do?",
+      "question_ne": "मेरो इन्टरनेट ढिलो छ। म के गर्नु पर्छ?",
+      "answer_en": "Try these steps: 1) Restart your router, 2) Check cable connections, 3) Run a speed test at speedtest.net, 4) Clear browser cache. If the issue persists, I can register a complaint for our technical team.",
+      "answer_ne": "यी कदमहरू प्रयास गर्नुहोस्: 1) राउटर रिस्टार्ट गर्नुहोस्, 2) केबल जडानहरू जाँच गर्नुहोस्, 3) speedtest.net मा स्पीड टेस्ट गर्नुहोस्, 4) ब्राउजर क्यास खाली गर्नुहोस्। समस्या जारी रहेमा, म हाम्रो प्राविधिक टोलीका लागि उजुरी दर्ता गर्न सक्छु।"
+    },
+    {
+      "category": "new_connection",
+      "keywords": ["new", "connect", "install", "apply", "registration", "नयाँ", "जडान", "स्थापना"],
+      "question_en": "How can I get a new DishHome connection?",
+      "question_ne": "म नयाँ DishHome जडान कसरी प्राप्त गर्न सक्छु?",
+      "answer_en": "To get a new connection: 1) Call 01-5970078, 2) Visit dishhome.com.np, or 3) Visit your nearest DishHome office. You'll need a copy of your citizenship and a passport-size photo. Installation is usually completed within 24-48 hours.",
+      "answer_ne": "नयाँ जडानको लागि: 1) 01-5970078 मा कल गर्नुहोस्, 2) dishhome.com.np मा जानुहोस्, वा 3) नजिकको DishHome कार्यालयमा जानुहोस्। तपाईंलाई नागरिकताको प्रतिलिपि र पासपोर्ट साइजको फोटो चाहिन्छ।"
+    },
+    {
+      "category": "outage",
+      "keywords": ["outage", "down", "no internet", "no signal", "server", "बन्द", "इन्टरनेट छैन", "सिग्नल छैन"],
+      "question_en": "Is there a service outage in my area?",
+      "question_ne": "मेरो क्षेत्रमा सेवा बन्द छ?",
+      "answer_en": "I can check for outages in your area. Could you please provide your location or customer ID? You can also check the DishHome app for real-time outage updates.",
+      "answer_ne": "म तपाईंको क्षेत्रमा सेवा बन्दको बारेमा जाँच गर्न सक्छु। कृपया तपाईंको स्थान वा ग्राहक ID दिनुहोस्। तपाईं DishHome एपमा पनि वास्तविक समयमा सेवा बन्द अपडेटहरू जाँच गर्न सक्नुहुन्छ।"
+    },
+    {
+      "category": "account",
+      "keywords": ["account", "profile", "change", "update", "password", "खाता", "प्रोफाइल", "परिवर्तन"],
+      "question_en": "How can I update my account details?",
+      "question_ne": "म आफ्नो खाता विवरण कसरी अपडेट गर्न सक्छु?",
+      "answer_en": "You can update your account by: 1) Logging into dishhome.com.np, 2) Using the DishHome app, or 3) Visiting a DishHome office with your ID. For security changes, you may need to verify your identity.",
+      "answer_ne": "तपाईंले आफ्नो खाता यसरी अपडेट गर्न सक्नुहुन्छ: 1) dishhome.com.np मा लगइन गरेर, 2) DishHome एप प्रयोग गरेर, वा 3) आफ्नो ID सहित DishHome कार्यालयमा गएर।"
+    },
+    {
+      "category": "complaint",
+      "keywords": ["complaint", "complain", "report", "ticket", "उजुरी", "गुनासो", "रिपोर्ट"],
+      "question_en": "How do I file a complaint?",
+      "question_ne": "म उजुरी कसरी दर्ता गर्न सक्छु?",
+      "answer_en": "I can help you file a complaint right now. Please describe your issue and I'll create a ticket for you. You'll receive a ticket number for tracking. Our team typically resolves issues within 24-48 hours.",
+      "answer_ne": "म अहिले नै तपाईंको उजुरी दर्ता गर्न मद्दत गर्न सक्छु। कृपया तपाईंको समस्या वर्णन गर्नुहोस् र म तपाईंको लागि टिकट सिर्जना गर्छु। हाम्रो टोलीले सामान्यतया 24-48 घण्टा भित्र समस्या समाधान गर्छ।"
+    },
+    {
+      "category": "ticketing",
+      "keywords": ["ticketing issue", "ticket status", "track", "ticket issue", "टिकट", "स्थिति"],
+      "question_en": "How can I check my ticket status or report a ticketing issue?",
+      "question_ne": "म मेरो टिकट स्थिति कसरी जाँच्न वा टिकट समस्या कसरी रिपोर्ट गर्न सक्छु?",
+      "answer_en": "If you are having ticketing issues, please provide your ticket number. I can check the status of your existing ticket or connect you with an agent to escalate it. Normal resolution time is 24 hours.",
+      "answer_ne": "यदि तपाईलाई टिकट सम्बन्धी समस्या छ भने, कृपया आफ्नो टिकट नम्बर दिनुहोस्। म तपाईंको हालको टिकटको स्थिति जाँच गर्न सक्छु वा यसलाई अगाडि बढाउन एजेन्टसँग जडान गर्न सक्छु।"
+    }
+  ]
+}

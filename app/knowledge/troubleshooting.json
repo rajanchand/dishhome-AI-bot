@@ -1,0 +1,68 @@
+{
+  "guides": [
+    {
+      "issue": "slow_internet",
+      "keywords": ["slow", "speed", "buffering", "lag", "ढिलो", "स्पीड"],
+      "steps_en": [
+        "Step 1: Restart your router - Unplug it for 30 seconds and plug it back in.",
+        "Step 2: Check all cable connections are secure.",
+        "Step 3: Connect directly via ethernet cable to rule out WiFi issues.",
+        "Step 4: Run a speed test at speedtest.net and note the results.",
+        "Step 5: Check if other devices have the same issue.",
+        "Step 6: Clear your browser cache and cookies.",
+        "If the issue persists, we'll escalate to our technical team."
+      ],
+      "steps_ne": [
+        "चरण 1: राउटर रिस्टार्ट गर्नुहोस् - 30 सेकेन्डको लागि अनप्लग गर्नुहोस् र फेरि प्लग गर्नुहोस्।",
+        "चरण 2: सबै केबल जडानहरू सुरक्षित छन् भनी जाँच गर्नुहोस्।",
+        "चरण 3: WiFi समस्या हटाउन इथरनेट केबल मार्फत सिधै जडान गर्नुहोस्।",
+        "चरण 4: speedtest.net मा स्पीड टेस्ट गर्नुहोस्।",
+        "चरण 5: अन्य उपकरणहरूमा पनि उही समस्या छ कि छैन जाँच गर्नुहोस्।",
+        "चरण 6: ब्राउजर क्यास र कुकीज खाली गर्नुहोस्।",
+        "समस्या जारी रहेमा, हामी प्राविधिक टोलीमा पठाउनेछौं।"
+      ]
+    },
+    {
+      "issue": "no_internet",
+      "keywords": ["no internet", "disconnected", "can't connect", "इन्टरनेट छैन", "जडान हुँदैन"],
+      "steps_en": [
+        "Step 1: Check if the router power light is on.",
+        "Step 2: Check if the WAN/Internet light is green or blinking.",
+        "Step 3: Restart the router by unplugging for 30 seconds.",
+        "Step 4: Check if your bill payment is up to date.",
+        "Step 5: Try connecting with a different device.",
+        "Step 6: Check for any service outage notifications in the DishHome app.",
+        "If none of these work, we'll schedule a technician visit."
+      ],
+      "steps_ne": [
+        "चरण 1: राउटरको पावर लाइट अन छ कि छैन जाँच गर्नुहोस्।",
+        "चरण 2: WAN/इन्टरनेट लाइट हरियो वा ब्लिंक भइरहेको छ कि जाँच गर्नुहोस्।",
+        "चरण 3: 30 सेकेन्डको लागि अनप्लग गरेर राउटर रिस्टार्ट गर्नुहोस्।",
+        "चरण 4: बिल भुक्तानी अद्यावधिक छ कि जाँच गर्नुहोस्।",
+        "चरण 5: फरक उपकरणले जडान गर्ने प्रयास गर्नुहोस्।",
+        "चरण 6: DishHome एपमा सेवा बन्द सूचना जाँच गर्नुहोस्।",
+        "यी मध्ये कुनै पनि काम नगरेमा, हामी प्राविधिकको भ्रमण तालिका बनाउनेछौं।"
+      ]
+    },
+    {
+      "issue": "wifi_problem",
+      "keywords": ["wifi", "wireless", "signal", "range", "वाइफाइ", "सिग्नल"],
+      "steps_en": [
+        "Step 1: Move closer to the router and check if the signal improves.",
+        "Step 2: Check if too many devices are connected to WiFi.",
+        "Step 3: Change the WiFi channel in router settings (192.168.1.1).",
+        "Step 4: Update your device's WiFi drivers.",
+        "Step 5: Consider using a WiFi extender for better coverage.",
+        "Step 6: Reset WiFi settings by pressing the reset button on the router for 10 seconds."
+      ],
+      "steps_ne": [
+        "चरण 1: राउटर नजिक जानुहोस् र सिग्नल सुधार हुन्छ कि जाँच गर्नुहोस्।",
+        "चरण 2: धेरै उपकरणहरू WiFi मा जडित छन् कि जाँच गर्नुहोस्।",
+        "चरण 3: राउटर सेटिङ्स (192.168.1.1) मा WiFi च्यानल परिवर्तन गर्नुहोस्।",
+        "चरण 4: तपाईंको उपकरणको WiFi ड्राइभरहरू अपडेट गर्नुहोस्।",
+        "चरण 5: राम्रो कभरेजको लागि WiFi एक्सटेन्डर प्रयोग गर्ने विचार गर्नुहोस्।",
+        "चरण 6: राउटरमा रिसेट बटन 10 सेकेन्ड थिचेर WiFi सेटिङ्स रिसेट गर्नुहोस्।"
+      ]
+    }
+  ]
+}
